@@ -4,11 +4,20 @@
 PRODUCT_ARG_HELP = "The product to search for on Amazon"
 PATH_ARG_HELP = "Path to save the CSV file (optional)"
 FORMAT_ARG_HELP = "Format to save the file (csv, xlsx, json). Default is csv."
-AMAZON_URL = "https://www.amazon.es/s?k={}"
 TIME_SLEEPED = 3
+
+# Amazon
+AMAZON_URL = "https://www.amazon.es/s?k={}"
 
 # Supported formats
 SUPPORTED_FORMATS = ["csv", "xlsx", "json"]
+
+# Supported file formats and their corresponding saving functions
+FILE_FORMAT_HANDLERS = {
+    "csv": lambda df, path: df.to_csv(path, index=False),
+    "xlsx": lambda df, path: df.to_excel(path, index=False),
+    "json": lambda df, path: df.to_json(path, orient="records", indent=4),
+}
 
 # Logging and error messages
 ERROR_FETCHING_PAGE = "Error in getting webpage: {}"

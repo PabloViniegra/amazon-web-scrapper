@@ -107,7 +107,7 @@ def handle_pagination(soup, listing_url):
     next_page_el = soup.select_one(SELECTORS['pagination_next'])
     if next_page_el:
         next_page_url = urljoin(listing_url, next_page_el.attrs.get('href'))
-        time.sleep(TIME_SLEEPED)
+        time.sleep(TIME_SLEEPED) # To avoid that Amazon blockes your IP
         print(Fore.GREEN + SCRAPING_NEXT_PAGE.format(next_page_url), flush=True)
         return parse_listing(next_page_url)
     return []

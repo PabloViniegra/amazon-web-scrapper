@@ -1,8 +1,8 @@
 import argparse
 from service.business_logic import parse_listing
-from constants.constants import PRODUCT_ARG_HELP, PATH_ARG_HELP, AMAZON_URL, FORMAT_ARG_HELP, SUPPORTED_FORMATS
+from constants.constants import PRODUCT_ARG_HELP, PATH_ARG_HELP, AMAZON_URL, FORMAT_ARG_HELP, SUPPORTED_FORMATS, FILE_FORMAT_HANDLERS
 import pandas as pd
-from colorama import Fore, Style, init
+from colorama import Fore, init
 from halo import Halo
 from utils.timerize import timeit
 import os
@@ -20,13 +20,9 @@ def save_data(data, path, file_format):
     file_format (str): The format to save the file in. Supported formats: 'csv', 'xlsx', 'json'.
     """
     df = pd.DataFrame(data)
-    
-    if file_format == "csv":
-        df.to_csv(path, index=False)
-    elif file_format == "xlsx":
-        df.to_excel(path, index=False)
-    elif file_format == "json":
-        df.to_json(path, orient="records", indent=4)
+
+    if file_format in FILE_FORMAT_HANDLERS:
+        FILE_FORMAT_HANDLERS[file_format](df, path)
     else:
         raise ValueError(Fore.RED + f"Unsupported file format: {file_format}. Supported formats are {', '.join(SUPPORTED_FORMATS)}")
 
