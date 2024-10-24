@@ -2,7 +2,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 import time
-from constants import (
+from constants.constants import (
     ERROR_FETCHING_PAGE,
     SCRAPING_PRODUCT,
     SCRAPING_NEXT_PAGE,
@@ -18,7 +18,7 @@ from constants import (
     HEADERS
 )
 from colorama import Fore
-from timerize import timeit
+from utils.timerize import timeit
 
 custom_headers = HEADERS
 

@@ -1,10 +1,10 @@
 import argparse
-from business_logic import parse_listing
-from constants import PRODUCT_ARG_HELP, PATH_ARG_HELP, AMAZON_URL, FORMAT_ARG_HELP, SUPPORTED_FORMATS
+from service.business_logic import parse_listing
+from constants.constants import PRODUCT_ARG_HELP, PATH_ARG_HELP, AMAZON_URL, FORMAT_ARG_HELP, SUPPORTED_FORMATS
 import pandas as pd
 from colorama import Fore, Style, init
 from halo import Halo
-from timerize import timeit
+from utils.timerize import timeit
 import os
 
 init(autoreset=True)
