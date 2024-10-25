@@ -1,11 +1,11 @@
 import argparse
 from service.business_logic import parse_listing
-from constants.constants import PRODUCT_ARG_HELP, PATH_ARG_HELP, AMAZON_URL, FORMAT_ARG_HELP, SUPPORTED_FORMATS, FILE_FORMAT_HANDLERS
+from constants.constants import PRODUCT_ARG_HELP, PATH_ARG_HELP, FORMAT_ARG_HELP, SUPPORTED_FORMATS, FILE_FORMAT_HANDLERS, DEFAULT_REGION, ERROR_UNSUPPORTED_REGION, SUPPORTED_REGIONS
 import pandas as pd
 from colorama import Fore, init
 from halo import Halo
 from utils.timerize import timeit
-import os
+import os, sys
 
 init(autoreset=True)
 
@@ -27,7 +27,7 @@ def save_data(data, path, file_format):
         raise ValueError(Fore.RED + f"Unsupported file format: {file_format}. Supported formats are {', '.join(SUPPORTED_FORMATS)}")
 
 @timeit
-def run_scrapper(product, path="amazon_products.csv", file_format="csv"):
+def run_scrapper(product, path="amazon_products.csv", file_format="csv", location=DEFAULT_REGION):
     """
     Main function to coordinate the scrapping and exporting process.
     
@@ -37,11 +37,16 @@ def run_scrapper(product, path="amazon_products.csv", file_format="csv"):
     file_format (str): File format to save the data (optional).
     """
     
-    spinner = Halo(text=f"Scraping results for {product}...", spinner="dots", color="cyan")
-    spinner.start()
+    if location not in SUPPORTED_REGIONS:
+            supported = ', '.join(SUPPORTED_REGIONS.keys())
+            print(Fore.RED + ERROR_UNSUPPORTED_REGION.format(location, supported))
+            sys.exit(1)
     
     try:
-        url = AMAZON_URL.format(product.replace(' ', '+'))
+        spinner = Halo(text=f"Scraping results for {product}...", spinner="dots", color="cyan")
+        spinner.start()
+        
+        url = SUPPORTED_REGIONS[location].format(product.replace(' ', '+'))
         data = parse_listing(url)
         
         _, file_extension = os.path.splitext(path)
@@ -60,8 +65,9 @@ if __name__ == "__main__":
     parser.add_argument("--product", required=True, help=PRODUCT_ARG_HELP)
     parser.add_argument("--path", default="amazon_products", help=PATH_ARG_HELP)
     parser.add_argument("--format", default="csv", help=FORMAT_ARG_HELP, choices=SUPPORTED_FORMATS)
+    parser.add_argument("--location", default=DEFAULT_REGION, help="Amazon region (e.g., 'es', 'com', 'co.uk', 'de'). Default is 'es' for Spain.")
     
     args = parser.parse_args()
     
-    run_scrapper(args.product, args.path, args.format)
+    run_scrapper(args.product, args.path, args.format, args.location)
 

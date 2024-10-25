@@ -6,9 +6,6 @@ PATH_ARG_HELP = "Path to save the CSV file (optional)"
 FORMAT_ARG_HELP = "Format to save the file (csv, xlsx, json). Default is csv."
 TIME_SLEEPED = 3
 
-# Amazon
-AMAZON_URL = "https://www.amazon.es/s?k={}"
-
 # Supported formats
 SUPPORTED_FORMATS = ["csv", "xlsx", "json"]
 
@@ -48,3 +45,19 @@ SELECTORS = {
     "pagination_next": "a.s-pagination-next",
     "product_link": "[data-asin] h2 a"
 }
+
+# Supported Amazon regions (countries)
+SUPPORTED_REGIONS = {
+    "es": "https://www.amazon.es/s?k={}",
+    "com": "https://www.amazon.com/s?k={}",
+    "co.uk": "https://www.amazon.co.uk/s?k={}",
+    "de": "https://www.amazon.de/s?k={}",
+    "fr": "https://www.amazon.fr/s?k={}",
+    "it": "https://www.amazon.it/s?k={}"
+}
+
+# Default region (Spain)
+DEFAULT_REGION = "es"
+
+# Error message for unsupported regions
+ERROR_UNSUPPORTED_REGION = "Unsupported region '{}'. Supported regions are: {}"
