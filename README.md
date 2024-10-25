@@ -50,26 +50,30 @@ The script takes a product search term and scrapes Amazon Spain for results. You
 python scrapper.py --product "search_term" --path "output_file_path" --format "output_format"
 ```
 
-### Command-Line Parameters
-
-- `--product` (required): The product to search for on Amazon.
-- `--path` (optional): Path to save the output file. The default is `amazon_products.csv`.
-- `--format` (optional): Format to save the output file. Supported formats: `csv`, `xlsx`, `json`. The default is `csv`.
-
 ### Examples
 
-1. **Basic Usage**: Searching for a product and saving the results as a CSV file (default):
+1. **Basic Usage**: Searching for a product on Amazon Spain and saving the results as a CSV file (default):
 
     ```bash
     python scrapper.py --product "laptop"
     ```
 
     **Expected output**:
-    - The script will scrape Amazon Spain for laptops.
+    - The script will scrape Amazon Spain (`amazon.es`) for laptops.
     - It will save the results in a CSV file called `amazon_products.csv` in the current directory.
     - You will see colored logs and spinners indicating the progress of the scraping process.
 
-2. **Saving in XLSX format**: Specify a different output format using the `--format` option:
+2. **Scraping Amazon US**: Specify a different Amazon location using the `--location` option:
+
+    ```bash
+    python scrapper.py --product "smartphone" --location "com"
+    ```
+
+    **Expected output**:
+    - The script will scrape Amazon US (`amazon.com`) for smartphones.
+    - It will save the results in a CSV file called `amazon_products.csv`.
+
+3. **Saving in XLSX format**: Specify a different output format using the `--format` option:
 
     ```bash
     python scrapper.py --product "smartphone" --format "xlsx"
@@ -79,7 +83,7 @@ python scrapper.py --product "search_term" --path "output_file_path" --format "o
     - The script will scrape Amazon Spain for smartphones.
     - It will save the results in an Excel file (`amazon_products.xlsx`).
 
-3. **Specifying a different output file path**: Save the results in a specific path and format:
+4. **Specifying a different output file path**: Save the results in a specific path and format:
 
     ```bash
     python scrapper.py --product "headphones" --path "./results/headphones_data.json" --format "json"
