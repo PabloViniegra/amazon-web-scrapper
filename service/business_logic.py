@@ -1,7 +1,7 @@
 from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
-import time
+import time, random
 from constants.constants import (
     ERROR_FETCHING_PAGE,
     SCRAPING_PRODUCT,
@@ -15,7 +15,9 @@ from constants.constants import (
     HEADERS,
     SELECTORS,
     TIME_SLEEPED,
-    HEADERS
+    HEADERS,
+    DEFAULT_RETRIES,
+    TIME_BETWEEN_RETRY
 )
 from colorama import Fore
 from utils.timerize import timeit
@@ -25,23 +27,29 @@ custom_headers = HEADERS
 visited_urls = set()
 
 @timeit
-def fetch_response(url):
+def fetch_response(url, retries=DEFAULT_RETRIES):
     """
     Sends a GET request to the provided URL and returns the BeautifulSoup object
-    of the response content if the status is 200. Otherwise, it logs an error.
+    of the response content if the status is 200. If the request fails, it logs an error 
+    and retries the request up to a specified number of attempts.
     
     Parameters:
     url (str): The URL to request.
-    
+    retries (int): The number of times to retry the request if the status code is not 200. 
+                   Defaults to DEFAULT_RETRIES.
+
     Returns:
-    BeautifulSoup or None: Parsed HTML content or None in case of failure.
+    BeautifulSoup or None: Parsed HTML content if the request is successful (status code 200),
+                           or None if all retries fail or if an error occurs.
     """
-    response = requests.get(url, headers=HEADERS)
-    if response.status_code != 200:
-        print(Fore.RED + ERROR_FETCHING_PAGE.format(url) + f" Status Code: {response.status_code}")
-        return None
-    print(Fore.GREEN + f"response from Amazon: {response.status_code}")
-    return BeautifulSoup(response.text, "lxml")
+    time.sleep(TIME_SLEEPED + random.uniform(0, 2))
+    for attempt in range(retries):
+        response = requests.get(url, headers=HEADERS)
+        if response.status_code == 200:
+            return BeautifulSoup(response.text, "lxml")
+        print(Fore.RED + ERROR_FETCHING_PAGE.format(url) + f" Status Code: {response.status_code}. Retrying... ({attempt + 1}/{retries})")
+        time.sleep(TIME_BETWEEN_RETRY)
+    return None
 
 @timeit
 def extract_product_data(soup, url):
@@ -108,7 +116,7 @@ def handle_pagination(soup, listing_url):
     next_page_el = soup.select_one(SELECTORS['pagination_next'])
     if next_page_el:
         next_page_url = urljoin(listing_url, next_page_el.attrs.get('href'))
-        time.sleep(TIME_SLEEPED) # To avoid that Amazon blockes your IP
+        time.sleep(TIME_SLEEPED + random.uniform(0, 2)) # To avoid that Amazon blockes your IP
         print(Fore.GREEN + SCRAPING_NEXT_PAGE.format(next_page_url), flush=True)
         return parse_listing(next_page_url)
     return []
