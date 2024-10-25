@@ -38,8 +38,9 @@ def fetch_response(url):
     """
     response = requests.get(url, headers=HEADERS)
     if response.status_code != 200:
-        print(Fore.RED + ERROR_FETCHING_PAGE.format(url) + response.content.text)
+        print(Fore.RED + ERROR_FETCHING_PAGE.format(url) + f" Status Code: {response.status_code}")
         return None
+    print(Fore.GREEN + f"response from Amazon: {response.status_code}")
     return BeautifulSoup(response.text, "lxml")
 
 @timeit
@@ -125,7 +126,8 @@ def parse_listing(listing_url):
     """
     soup = fetch_response(listing_url)
     if not soup:
-        raise ValueError("Failed to fetch the search results page.")
+        print(Fore.RED + "Skipping this page due to fetch error.")
+        return []
 
     print(Fore.YELLOW + REQUEST_STATUS.format(200))
     link_elements = soup.select(SELECTORS['product_link'])
@@ -133,10 +135,14 @@ def parse_listing(listing_url):
 
     for link in link_elements:
         full_url = urljoin(listing_url, link.attrs.get("href"))
+        print(Fore.LIGHTBLUE_EX + "Processing product URL: " + full_url)
         product_info = scrape_product(full_url)
         if product_info:
             page_data.append(product_info)
 
-    page_data += handle_pagination(soup, listing_url)
+    try:
+        page_data += handle_pagination(soup, listing_url)
+    except Exception as e:
+        print(Fore.RED + f"Error handling pagination: {str(e)}")
 
     return page_data
