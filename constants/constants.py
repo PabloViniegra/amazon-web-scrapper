@@ -1,3 +1,4 @@
+import logging
 # constants.py
 
 # Argument help texts
@@ -65,3 +66,6 @@ ERROR_UNSUPPORTED_REGION = "Unsupported region '{}'. Supported regions are: {}"
 # Default values of retries
 DEFAULT_RETRIES = 3
 TIME_BETWEEN_RETRY = 60
+
+# Debug
+DEBUG_LEVEL = logging.DEBUG
