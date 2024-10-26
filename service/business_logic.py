@@ -1,7 +1,7 @@
 from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
-import time, random
+import time, random, logging
 from constants.constants import (
     ERROR_FETCHING_PAGE,
     SCRAPING_PRODUCT,
@@ -17,10 +17,21 @@ from constants.constants import (
     TIME_SLEEPED,
     HEADERS,
     DEFAULT_RETRIES,
-    TIME_BETWEEN_RETRY
+    TIME_BETWEEN_RETRY,
+    DEBUG_LEVEL
 )
 from colorama import Fore
 from utils.timerize import timeit
+
+logging.basicConfig(
+    filename="logging/app.log",
+    encoding="utf-8",
+    filemode="a",
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M",
+    level=DEBUG_LEVEL
+)
 
 custom_headers = HEADERS
 
@@ -48,6 +59,7 @@ def fetch_response(url, retries=DEFAULT_RETRIES):
         if response.status_code == 200:
             return BeautifulSoup(response.text, "lxml")
         print(Fore.RED + ERROR_FETCHING_PAGE.format(url) + f" Status Code: {response.status_code}. Retrying... ({attempt + 1}/{retries})")
+        logging.info(f" Status Code: {response.status_code}. Retrying... ({attempt + 1}/{retries})")
         time.sleep(TIME_BETWEEN_RETRY)
     return None
 
@@ -68,8 +80,7 @@ def extract_product_data(soup, url):
     rating = soup.select_one(SELECTORS['rating'])
     image = soup.select_one(SELECTORS['image'])
     description = soup.select_one(SELECTORS['description'])
-    
-    return {
+    result = {
         "title": title.text.strip() if title else NO_TITLE,
         "price": price.text if price else NO_PRICE,
         "rating": rating.attrs.get("title", NO_RATING).replace("out of 5 stars", "") if rating else NO_RATING,
@@ -77,6 +88,8 @@ def extract_product_data(soup, url):
         "description": description.text.strip() if description else NO_DESCRIPTION,
         "url": url
     }
+    logging.debug(f"row: {result}")
+    return result
 
 @timeit
 def scrape_product(url):
@@ -90,10 +103,11 @@ def scrape_product(url):
     dict or None: Dictionary with product information, or None if an error occurs.
     """
     if url in visited_urls:
+        logging.warning(f"{url} was already visited")
         return None
     visited_urls.add(url)
     print(Fore.LIGHTGREEN_EX + SCRAPING_PRODUCT.format(url[:100]), flush=True)
-
+    logging.info(SCRAPING_PRODUCT.format(url[:100]))
     soup = fetch_response(url)
     if not soup:
         return None
@@ -118,6 +132,7 @@ def handle_pagination(soup, listing_url):
         next_page_url = urljoin(listing_url, next_page_el.attrs.get('href'))
         time.sleep(TIME_SLEEPED + random.uniform(0, 2)) # To avoid that Amazon blockes your IP
         print(Fore.GREEN + SCRAPING_NEXT_PAGE.format(next_page_url), flush=True)
+        logging.info(SCRAPING_NEXT_PAGE.format(next_page_url))
         return parse_listing(next_page_url)
     return []
 
@@ -135,15 +150,16 @@ def parse_listing(listing_url):
     soup = fetch_response(listing_url)
     if not soup:
         print(Fore.RED + "Skipping this page due to fetch error.")
+        logging.warning("Skipping this page due to fetch error.")
         return []
 
     print(Fore.YELLOW + REQUEST_STATUS.format(200))
+    logging.info(REQUEST_STATUS.format(200))
     link_elements = soup.select(SELECTORS['product_link'])
     page_data = []
 
     for link in link_elements:
         full_url = urljoin(listing_url, link.attrs.get("href"))
-        print(Fore.LIGHTBLUE_EX + "Processing product URL: " + full_url)
         product_info = scrape_product(full_url)
         if product_info:
             page_data.append(product_info)
@@ -152,5 +168,5 @@ def parse_listing(listing_url):
         page_data += handle_pagination(soup, listing_url)
     except Exception as e:
         print(Fore.RED + f"Error handling pagination: {str(e)}")
-
+        logging.error(f"Error handling pagination: {str(e)}")
     return page_data
